@@ -1,4 +1,4 @@
-import { createSelector, createEntityAdapter } from '@reduxjs/toolkit';
+import { createEntityAdapter } from '@reduxjs/toolkit';
 import { sub } from 'date-fns';
 import { apiSlice } from '../api/apiSlice';
 
@@ -110,9 +110,10 @@ export const extendedApiSlice = apiSlice.injectEndpoints({
 				// `updateQueryData` requires the endpoint name and cache key arguments,
 				// so it knows which piece of cache state to update
 				const patchResult = dispatch(
+					// updateQueryData takes three arguments: the name of the endpoint to update, the same cache key value used to identify the specific cached data, and a callback that updates the cached data.
 					extendedApiSlice.util.updateQueryData(
 						'getPosts',
-						undefined,
+						'getPosts',
 						(draft) => {
 							// The `draft` is Immer-wrapped and can be "mutated" like in createSlice
 							const post = draft.entities[postId];
@@ -138,22 +139,3 @@ export const {
 	useDeletePostMutation,
 	useAddReactionMutation,
 } = extendedApiSlice;
-
-// returns the query result object
-export const selectPostsResult = extendedApiSlice.endpoints.getPosts.select();
-
-// Creates memoized selector
-const selectPostsData = createSelector(
-	selectPostsResult,
-	(postsResult) => postsResult.data // normalized state object with ids & entities
-);
-
-//getSelectors creates these selectors and we rename them with aliases using destructuring
-export const {
-	selectAll: selectAllPosts,
-	selectById: selectPostById,
-	selectIds: selectPostIds,
-	// Pass in a selector that returns the posts slice of state
-} = postsAdapter.getSelectors(
-	(state) => selectPostsData(state) ?? initialState
-);
